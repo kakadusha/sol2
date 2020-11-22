@@ -20,7 +20,7 @@ const int RIGHT_POS = 180-45;
 const int LEFT_POS  = 45;
 
 
-#define P_SIZE 4
+#define P_SIZE (8+1)
 
 
 Servo myservo_hl;  // create servo object to control hight-low (vertical)
@@ -68,6 +68,7 @@ int check_position(int P[P_SIZE][2], int size) {
 
 int P[P_SIZE][2];
 int new_pos = 0;
+int del = 0;
 
 void set_p_cross(int pos_hl, int pos_lr) {
   P[0][0] = pos_hl+0; P[0][1] = pos_lr-1;
@@ -75,6 +76,19 @@ void set_p_cross(int pos_hl, int pos_lr) {
   P[2][0] = pos_hl+1; P[2][1] = pos_lr+0;
   P[3][0] = pos_hl+0; P[3][1] = pos_lr+1;    
 }
+void set_p_cross_x2(int pos_hl, int pos_lr) {
+  P[0][0] = pos_hl+0; P[0][1] = pos_lr+0;
+
+  P[1][0] = pos_hl+0; P[1][1] = pos_lr-3;
+  P[2][0] = pos_hl+0; P[2][1] = pos_lr-10;
+  P[3][0] = pos_hl-3; P[3][1] = pos_lr+0;
+  P[4][0] = pos_hl-10; P[4][1] = pos_lr+0;
+  P[5][0] = pos_hl+3; P[5][1] = pos_lr+0;
+  P[6][0] = pos_hl+10; P[6][1] = pos_lr+0;
+  P[7][0] = pos_hl+0; P[7][1] = pos_lr+3;    
+  P[8][0] = pos_hl+0; P[8][1] = pos_lr+10;    
+}
+
 
 void setup() {
   myservo_hl.attach(PIN_SERVO_HL);  // attaches the servo on pin 9 to the servo object
@@ -92,15 +106,21 @@ void setup() {
   P[new_pos][0] = pos_hl;
   P[new_pos][1] = pos_lr;
   move_platform(pos_hl, pos_lr);
+  del = 50;
 }
 
 
 void loop() {
    
 //  Serial.println(read_light_sensor());
-  delay(200);
+  Serial.println(del);
+  delay(del);
   
-  set_p_cross(P[new_pos][0],P[new_pos][1]);
+  set_p_cross_x2(P[new_pos][0],P[new_pos][1]);
   new_pos = check_position(P, P_SIZE);
   move_platform(P[new_pos][0],P[new_pos][1]);
+  if (new_pos == 0) { 
+    if (del < 5*1000) del = del * 4; 
+  }
+  else del = 10;
 }
