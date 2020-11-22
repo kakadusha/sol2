@@ -42,53 +42,72 @@ int read_light_sensor() {
 
 // move platform to check position find new maximum, return index of position 
 int check_position(int P[P_SIZE][2], int size) {
-  int best_value = 10000;  // worst unpossible
-  int value = best_value;
+  int min_value = 10000;  // worst unpossible
+  int max_value = -1;     // worst unpossible
+  int value = min_value;
   int best_pos = 0;
   for (int i = 0; i < size; i++) {
     move_platform(P[i][0], P[i][1]);
     delay(100);
     value = read_light_sensor();
-//    Serial.print(i); Serial.print(": ");
-//    Serial.print(P[i][0]); Serial.print(" ");
-//    Serial.print(P[i][1]); Serial.print(" - ");
-//    Serial.print(value); Serial.println(" / ");
-    if (value < best_value) {
+    Serial.print(i); Serial.print(": ");
+    Serial.print(P[i][0]); Serial.print(" ");
+    Serial.print(P[i][1]); Serial.print(" = ");
+    Serial.print(value); Serial.println(" / ");
+    if (value < min_value) {
       best_pos = i;
-      best_value = value;
+      min_value = value;
+    }
+    if (value > max_value) {
+      max_value = value;
     }
   }
   Serial.print(best_pos); Serial.print(": ");
-  Serial.print(P[best_pos][0]); Serial.print(" ");
-  Serial.print(P[best_pos][1]); Serial.print(" - ");
-  Serial.println(best_value);
-  return best_pos;
+  Serial.print(P[best_pos][0]); Serial.print(" "); Serial.print(P[best_pos][1]); 
+  Serial.print(" val:"); Serial.print(min_value); 
+  Serial.print(" nd:"); Serial.print((float)(max_value-min_value)/max_value);
+  Serial.println();
+  if ((float)(max_value-min_value)/max_value > 0.1) return best_pos;
+  else return -1;
 }
 
 
 int P[P_SIZE][2];
 int new_pos = 0;
 int del = 0;
+int r = 1;
 
-void set_p_cross(int pos_hl, int pos_lr) {
-  P[0][0] = pos_hl+0; P[0][1] = pos_lr-1;
-  P[1][0] = pos_hl-1; P[1][1] = pos_lr+0;
-  P[2][0] = pos_hl+1; P[2][1] = pos_lr+0;
-  P[3][0] = pos_hl+0; P[3][1] = pos_lr+1;    
-}
-void set_p_cross_x2(int pos_hl, int pos_lr) {
+//void set_p_cross(int pos_hl, int pos_lr) {
+//  P[0][0] = pos_hl+0; P[0][1] = pos_lr-1;
+//  P[1][0] = pos_hl-1; P[1][1] = pos_lr+0;
+//  P[2][0] = pos_hl+1; P[2][1] = pos_lr+0;
+//  P[3][0] = pos_hl+0; P[3][1] = pos_lr+1;    
+//}
+//void set_p_cross_x2(int pos_hl, int pos_lr) {
+//  P[0][0] = pos_hl+0; P[0][1] = pos_lr+0;
+//
+//  P[1][0] = pos_hl+0; P[1][1] = pos_lr-1;
+//  P[2][0] = pos_hl+0; P[2][1] = pos_lr-2;
+//  P[3][0] = pos_hl-1; P[3][1] = pos_lr+0;
+//  P[4][0] = pos_hl-2; P[4][1] = pos_lr+0;
+//  P[5][0] = pos_hl+1; P[5][1] = pos_lr+0;
+//  P[6][0] = pos_hl+2; P[6][1] = pos_lr+0;
+//  P[7][0] = pos_hl+0; P[7][1] = pos_lr+1;    
+//  P[8][0] = pos_hl+0; P[8][1] = pos_lr+2;    
+//}
+
+void set_p_square_r(int pos_hl, int pos_lr, int r=1) {
   P[0][0] = pos_hl+0; P[0][1] = pos_lr+0;
-
-  P[1][0] = pos_hl+0; P[1][1] = pos_lr-3;
-  P[2][0] = pos_hl+0; P[2][1] = pos_lr-10;
-  P[3][0] = pos_hl-3; P[3][1] = pos_lr+0;
-  P[4][0] = pos_hl-10; P[4][1] = pos_lr+0;
-  P[5][0] = pos_hl+3; P[5][1] = pos_lr+0;
-  P[6][0] = pos_hl+10; P[6][1] = pos_lr+0;
-  P[7][0] = pos_hl+0; P[7][1] = pos_lr+3;    
-  P[8][0] = pos_hl+0; P[8][1] = pos_lr+10;    
+  
+  P[1][0] = pos_hl+0; P[1][1] = pos_lr-r;
+  P[2][0] = pos_hl-r; P[2][1] = pos_lr-r;
+  P[3][0] = pos_hl-r; P[3][1] = pos_lr+0;
+  P[4][0] = pos_hl-r; P[4][1] = pos_lr+r;    
+  P[5][0] = pos_hl+0; P[5][1] = pos_lr+r;
+  P[6][0] = pos_hl+r; P[6][1] = pos_lr+r;
+  P[7][0] = pos_hl+r; P[7][1] = pos_lr+0;
+  P[8][0] = pos_hl+r; P[8][1] = pos_lr-r;    
 }
-
 
 void setup() {
   myservo_hl.attach(PIN_SERVO_HL);  // attaches the servo on pin 9 to the servo object
@@ -107,20 +126,31 @@ void setup() {
   P[new_pos][1] = pos_lr;
   move_platform(pos_hl, pos_lr);
   del = 50;
+  r = 1;
 }
 
 
 void loop() {
    
-//  Serial.println(read_light_sensor());
+  //Serial.println(read_light_sensor());
   Serial.println(del);
   delay(del);
   
-  set_p_cross_x2(P[new_pos][0],P[new_pos][1]);
+  set_p_square_r(P[new_pos][0],P[new_pos][1], r);
+
   new_pos = check_position(P, P_SIZE);
-  move_platform(P[new_pos][0],P[new_pos][1]);
-  if (new_pos == 0) { 
-    if (del < 5*1000) del = del * 4; 
+  if (new_pos == -1) { // bad luck
+   r++;  
+   new_pos = 0;
+   del = del/2;
+  } else {
+    r = 1;
+    if (new_pos == 0) { 
+      if (del < 6*1000) del = del * 4; 
+    }
+    else del = 10;
   }
-  else del = 10;
+    
+  move_platform(P[new_pos][0],P[new_pos][1]);
+  
 }
